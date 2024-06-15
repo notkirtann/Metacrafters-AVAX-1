@@ -23,12 +23,4 @@ contract ErrorHandlingAssesment{
         count++;
     }
 
-    error CustomError(uint money, string message);
-
-    function testingCustomError(uint money) public{
-        if(money <= 1000){
-            revert CustomError(money,"Entered Amount must be greater than 1000");
-        }
-        count++;
-    }
 }
