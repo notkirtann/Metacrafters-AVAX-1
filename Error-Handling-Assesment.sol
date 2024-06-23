@@ -1,26 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Storage {
-    uint private storedNumber;
+contract SimpleWallet {
+    uint256 public funds; // The funds of the contract
+    address public administrator; // The administrator of the contract
 
-    // Function to set a number
-    function setNum(uint _number) public {
-        require(_number > 0, "Number must be greater than zero");
-        storedNumber = _number;
+    // Constructor to set the contract deployer as the administrator
+    constructor() {
+        administrator = msg.sender;
     }
 
-    // Function is to get the stored number
-    function getNum() public view returns (uint) {
-        assert(storedNumber > 0); // Ensure the stored number is always greater than zero
-        return storedNumber;
+    // Modifier to restrict function access to only the administrator
+    modifier onlyAdministrator() {
+        require(msg.sender == administrator, "Only the administrator can call this function");
+        _;
     }
 
-    // Function to reset the stored number to zero
-    function resetNum() public {
-        if (storedNumber == 0) {
-            revert("Number is already zero");
+    // Function to add funds to the contract
+    function addFunds(uint256 amount) public {
+        require(amount > 0, "Amount must be greater than 0"); // Check if the amount is greater than 0
+
+        // Check for overflow
+        assert(funds + amount >= funds);
+
+        funds += amount; // Increase the funds by the amount
+    }
+
+    // Function to remove funds from the contract, only callable by the administrator
+    function removeFunds(uint256 amount) public onlyAdministrator {
+        require(amount > 0, "Amount must be greater than 0"); // Check if the amount is greater than 0
+        require(funds >= amount, "Insufficient funds"); // Check if the funds are sufficient for the withdrawal
+
+        // Prevent withdrawal of more than half of the funds
+        if (amount > funds / 2) {
+            revert("Cannot remove more than half of the funds");
         }
-        storedNumber = 0;
+
+        funds -= amount; // Decrease the funds by the amount
     }
 }
