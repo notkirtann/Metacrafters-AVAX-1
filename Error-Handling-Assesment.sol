@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-pragma solidity 0.8.18;
+contract Storage {
+    uint private storedNumber;
 
-contract ErrorHandlingAssesment{
-
-    uint public count=0;
-
-    function testingRequire_In_Solidity(uint money) public{
-        require(money > 1000,"Entered Amount must be greater than 1000");
-        count++;
+    // Function to set a number
+    function setNum(uint _number) public {
+        require(_number > 0, "Number must be greater than zero");
+        storedNumber = _number;
     }
 
-    function testingRevert_In_Solidity(uint money) public {
-        if(!(money > 1000)){
-            revert("Entered Amount must be greater than 1000");
+    // Function is to get the stored number
+    function getNum() public view returns (uint) {
+        assert(storedNumber > 0); // Ensure the stored number is always greater than zero
+        return storedNumber;
+    }
+
+    // Function to reset the stored number to zero
+    function resetNum() public {
+        if (storedNumber == 0) {
+            revert("Number is already zero");
         }
-        count++;
+        storedNumber = 0;
     }
-
-    function testingAssert_In_Solidity(uint money) public{
-        assert(money > 1000);
-        count++;
-    }
-
 }
