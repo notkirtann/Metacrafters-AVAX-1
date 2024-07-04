@@ -1,41 +1,67 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.26;
 
-contract SimpleWallet {
-    uint256 public funds; // The funds of the contract
-    address public administrator; // The administrator of the contract
+contract FootballClub {
+    address public owner;
+    uint256 public playerCount;
 
-    // Constructor to set the contract deployer as the administrator
-    constructor() {
-        administrator = msg.sender;
+    struct  Player {
+        uint256 id;
+        string name;
+        uint256 age;
+        uint256 price;
+        bool isAvailable;
     }
 
-    // Modifier to restrict function access to only the administrator
-    modifier onlyAdministrator() {
-        require(msg.sender == administrator, "Only the administrator can call this function");
+    mapping(uint256 => Player) public players;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
         _;
     }
 
-    // Function to add funds to the contract
-    function addFunds(uint256 amount) public {
-        require(amount > 0, "Amount must be greater than 0"); // Check if the amount is greater than 0
+    event PlayerAdded(uint256 id, string name, uint256 age, uint256 price);
+    event PlayerUpdated(uint256 id, string name, uint256 age, uint256 price, bool isAvailable);
 
-        // Check for overflow
-        assert(funds + amount >= funds);
+    function addPlayer(uint256 _id, string memory _name, uint256 _age, uint256 _price) public onlyOwner {
+        require(_price > 0, "Price must be greater than zero");
+        require(_age > 0, "Age must be greater than zero");
 
-        funds += amount; // Increase the funds by the amount
+        players[_id] = Player(_id, _name, _age, _price, true);
+        playerCount++;
+
+        emit PlayerAdded(_id, _name, _age, _price);
     }
 
-    // Function to remove funds from the contract, only callable by the administrator
-    function removeFunds(uint256 amount) public onlyAdministrator {
-        require(amount > 0, "Amount must be greater than 0"); // Check if the amount is greater than 0
-        require(funds >= amount, "Insufficient funds"); // Check if the funds are sufficient for the withdrawal
+    function updatePlayer(uint256 _id, string memory _name, uint256 _age, uint256 _price, bool _isAvailable) public onlyOwner {
+        require(_price > 0, "Price must be greater than zero");
+        require(_age > 0, "Age must be greater than zero");
 
-        // Prevent withdrawal of more than half of the funds
-        if (amount > funds / 2) {
-            revert("Cannot remove more than half of the funds");
+        Player storage player = players[_id];
+        if (bytes(player.name).length == 0) {
+            revert("Player does not exist");
         }
 
-        funds -= amount; // Decrease the funds by the amount
+        player.name = _name;
+        player.age = _age;
+        player.price = _price;
+        player.isAvailable = _isAvailable;
+
+        emit PlayerUpdated(_id, _name, _age, _price, _isAvailable);
+    }
+
+    function getPlayer(uint256 _id) public view returns (string memory, uint256, uint256, bool) {
+        Player storage player = players[_id];
+        require(bytes(player.name).length > 0, "Player does not exist");
+        return (player.name, player.age, player.price, player.isAvailable);
+    }
+
+    function totalPlayers() public view returns (uint256) {
+        assert(playerCount >= 0);
+        return playerCount;
     }
 }
